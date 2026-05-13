@@ -12,7 +12,8 @@ import {
   HelpCircle,
   LogOut,
   Menu,
-  X
+  X,
+  ChevronRight
 } from 'lucide-react';
 
 const DashboardLayout = ({ children, title }) => {
@@ -41,83 +42,87 @@ const DashboardLayout = ({ children, title }) => {
   };
 
   const SidebarContent = () => (
-    <>
-      <div className="p-8">
-        <Link to="/" className="flex flex-col">
-          <span className="text-2xl font-bold text-blue-950">Armstrong</span>
-          <span className="text-2xl font-bold text-blue-950 -mt-1">Explorer</span>
-        </Link>
+    <div className="flex flex-col h-full bg-white border-r border-[var(--border)]">
+      <div className="p-6 flex items-center space-x-2">
+        <div className="w-8 h-8 bg-[var(--primary)] rounded flex items-center justify-center">
+          <span className="text-white font-bold text-lg">A</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-lg font-bold text-[var(--text-primary)] leading-none">Armstrong</span>
+          <span className="text-xs font-semibold text-[var(--text-muted)] tracking-wider uppercase">Explorer</span>
+        </div>
       </div>
 
-      {/* User Profile Card in Sidebar */}
-      <div className="px-4 mb-8">
-        <div className="bg-gray-100/50 rounded-lg p-3 flex items-center space-x-3 border border-gray-100">
-          <img 
-            src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=48&h=48&q=80" 
-            alt="Profile" 
-            className="w-10 h-10 rounded-md object-cover"
-          />
-          <div className="overflow-hidden">
-              <p className="text-sm font-bold text-blue-950 truncate leading-tight">{userName}</p>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none mt-1.5">Premium Member</p>
-            </div>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-1">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center space-x-3.5 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all ${
-                location.pathname === item.path
-                  ? 'bg-blue-50 text-blue-900 shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-blue-900'
-              }`}
-            >
-              <item.icon className={`w-5 h-5 ${location.pathname === item.path ? 'text-blue-900' : 'text-gray-400'}`} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-
-          <div className="pt-10 pb-4">
-            <div className="border-t border-gray-100 mx-4"></div>
-          </div>
-
-          {secondaryMenuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`flex items-center space-x-3.5 px-4 py-3 rounded-xl text-[14px] font-semibold transition-all ${
-                location.pathname === item.path
-                  ? 'bg-blue-50 text-blue-900 shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-blue-900'
-              }`}
-            >
-              <item.icon className={`w-5 h-5 ${location.pathname === item.path ? 'text-blue-900' : 'text-gray-400'}`} />
-              <span>{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-gray-100">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center space-x-3.5 px-4 py-3 w-full text-left text-[14px] font-semibold text-red-500 hover:bg-red-50 rounded-xl transition-all"
+      <nav className="flex-1 px-3 mt-4 space-y-1">
+        <p className="px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Main Menu</p>
+        {menuItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center justify-between px-4 py-2.5 rounded text-sm font-medium transition-all ${
+              location.pathname === item.path
+                ? 'bg-[var(--primary-light)] text-[var(--primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-gray-50 hover:text-[var(--text-primary)]'
+            }`}
           >
-            <LogOut className="w-5 h-5" />
-            <span>Logout</span>
-          </button>
+            <div className="flex items-center space-x-3">
+              <item.icon className={`w-4 h-4 ${location.pathname === item.path ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
+              <span>{item.label}</span>
+            </div>
+            {location.pathname === item.path && <ChevronRight className="w-3 h-3" />}
+          </Link>
+        ))}
+
+        <div className="pt-6 pb-2">
+          <p className="px-4 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-2">Support & Account</p>
         </div>
-    </>
+
+        {secondaryMenuItems.map((item) => (
+          <Link
+            key={item.path}
+            to={item.path}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className={`flex items-center justify-between px-4 py-2.5 rounded text-sm font-medium transition-all ${
+              location.pathname === item.path
+                ? 'bg-[var(--primary-light)] text-[var(--primary)]'
+                : 'text-[var(--text-secondary)] hover:bg-gray-50 hover:text-[var(--text-primary)]'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <item.icon className={`w-4 h-4 ${location.pathname === item.path ? 'text-[var(--primary)]' : 'text-[var(--text-muted)]'}`} />
+              <span>{item.label}</span>
+            </div>
+            {location.pathname === item.path && <ChevronRight className="w-3 h-3" />}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="p-4 mt-auto border-t border-[var(--border)] bg-gray-50/50">
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="w-9 h-9 rounded-full bg-[var(--primary-light)] flex items-center justify-center text-[var(--primary)] font-bold">
+            {userName.charAt(0)}
+          </div>
+          <div className="overflow-hidden">
+            <p className="text-sm font-bold text-[var(--text-primary)] truncate">{userName}</p>
+            <p className="text-[10px] text-[var(--text-muted)] truncate">Student Account</p>
+          </div>
+        </div>
+        <button 
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-3 py-2 w-full text-left text-sm font-semibold text-red-600 hover:bg-red-50 rounded transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Logout</span>
+        </button>
+      </div>
+    </div>
   );
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-[var(--bg-main)] overflow-hidden">
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex w-72 bg-white border-r border-gray-100 flex-col shrink-0 overflow-y-auto scrollbar-hide">
+      <aside className="hidden lg:flex w-64 flex-col shrink-0">
         <SidebarContent />
       </aside>
 
@@ -127,17 +132,17 @@ const DashboardLayout = ({ children, title }) => {
           className="fixed inset-0 z-50 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         >
-          <div className="absolute inset-0 bg-gray-600/50 backdrop-blur-sm"></div>
+          <div className="absolute inset-0 bg-[var(--text-primary)]/40 backdrop-blur-sm"></div>
           <aside 
-            className="absolute left-0 top-0 bottom-0 w-64 bg-white flex flex-col"
+            className="absolute left-0 top-0 bottom-0 w-72 flex flex-col animate-in slide-in-from-left duration-300"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-4 right-4 z-10">
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-gray-400 hover:text-blue-900"
+                className="p-1.5 bg-white rounded-full shadow-md text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
             </div>
             <SidebarContent />
@@ -148,27 +153,28 @@ const DashboardLayout = ({ children, title }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-8 shrink-0">
-          <div className="flex items-center">
+        <header className="h-14 bg-white border-b border-[var(--border)] flex items-center justify-between px-4 lg:px-8 shrink-0">
+          <div className="flex items-center space-x-4">
             <button 
               onClick={() => setIsMobileMenuOpen(true)}
-              className="p-2 mr-2 text-gray-500 hover:text-blue-900 lg:hidden"
+              className="p-1.5 text-[var(--text-secondary)] hover:bg-gray-100 rounded lg:hidden"
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-5 h-5" />
             </button>
-            <h1 className="text-lg lg:text-xl font-bold text-blue-950 truncate">{title}</h1>
+            <h1 className="text-base lg:text-lg font-bold text-[var(--text-primary)] truncate">{title}</h1>
           </div>
           
-          <div className="flex items-center space-x-3 lg:space-x-6">
-            <button className="hidden sm:flex text-gray-400 hover:text-blue-900 transition-colors">
+          <div className="flex items-center space-x-2 lg:space-x-4">
+            <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] rounded-full transition-colors">
               <Bell className="w-5 h-5" />
             </button>
-            <button className="hidden sm:flex text-gray-400 hover:text-blue-900 transition-colors">
+            <button className="hidden sm:flex p-1.5 text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-[var(--primary-light)] rounded-full transition-colors">
               <HelpCircle className="w-5 h-5" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-gray-100">
+            <div className="w-px h-6 bg-[var(--border)] mx-1 lg:mx-2"></div>
+            <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden border border-[var(--border)]">
               <img 
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=32&h=32&q=80" 
+                src={`https://ui-avatars.com/api/?name=${userName}&background=DEEBFF&color=0052CC&bold=true`} 
                 alt="Avatar" 
                 className="w-full h-full object-cover"
               />
@@ -177,30 +183,31 @@ const DashboardLayout = ({ children, title }) => {
         </header>
 
         {/* Page Body */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-          {children}
-          
-          {/* Dashboard Footer */}
-          <footer className="mt-20 pt-10 border-t border-gray-200">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-              <div>
-                <h4 className="text-blue-950 font-bold text-lg mb-2">Armstrong Explorer</h4>
-                <p className="text-gray-500 text-xs leading-relaxed max-w-xs">
-                  © 2024 Armstrong Explorer. Academic excellence through numerical patterns.
-                </p>
+        <main className="flex-1 overflow-y-auto scroll-smooth">
+          <div className="p-4 lg:p-8 max-w-7xl mx-auto">
+            {children}
+            
+            {/* Dashboard Footer */}
+            <footer className="mt-12 pt-8 border-t border-[var(--border)] pb-8">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+                <div>
+                  <h4 className="text-[var(--text-primary)] font-bold text-base mb-1">Armstrong Explorer</h4>
+                  <p className="text-[var(--text-muted)] text-xs leading-relaxed max-w-sm">
+                    © 2024 Armstrong Explorer. Academic excellence through numerical patterns.
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                  <Link to="/privacy" className="hover:text-[var(--primary)] transition-colors">Privacy Policy</Link>
+                  <Link to="/terms" className="hover:text-[var(--primary)] transition-colors">Terms of Service</Link>
+                  <Link to="/support" className="hover:text-[var(--primary)] transition-colors">Support</Link>
+                </div>
               </div>
-              <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                <Link to="/privacy" className="hover:text-blue-900">Privacy Policy</Link>
-                <Link to="/terms" className="hover:text-blue-900">Terms of Service</Link>
-                <Link to="/api" className="hover:text-blue-900">API Documentation</Link>
-                <Link to="/support" className="hover:text-blue-900">Support</Link>
-              </div>
-            </div>
-          </footer>
+            </footer>
+          </div>
         </main>
       </div>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default DashboardLayout;;

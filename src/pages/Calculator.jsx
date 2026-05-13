@@ -1,221 +1,243 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Check, RotateCcw, HelpCircle } from 'lucide-react';
+import { Search, Info, RotateCcw, CheckCircle2, XCircle, ChevronRight, Calculator as CalcIcon } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 
 const Calculator = () => {
-  const [number, setNumber] = useState('153');
-  const [result, setResult] = useState({
-    checked: true,
-    num: 153,
-    isArmstrong: true,
-    digits: 3,
-    breakdown: '1³ + 5³ + 3³ = 1 + 125 + 27 = 153'
-  });
+  const [number, setNumber] = useState('');
+  const [result, setResult] = useState(null);
+  const [isCalculating, setIsCalculating] = useState(false);
 
-  const checkArmstrong = (num) => {
-    const n = String(num);
-    const len = n.length;
-    const digits = n.split('').map(Number);
-    const sum = digits.reduce((acc, d) => acc + Math.pow(d, len), 0);
-    return {
-      isArmstrong: sum === Number(num),
-      digits: len,
-      sum: sum
-    };
-  };
-
-  const handleCheck = (e) => {
+  const checkArmstrong = (e) => {
     e.preventDefault();
-    const val = parseInt(number);
-    if (isNaN(val)) return;
+    if (!number) return;
+    
+    setIsCalculating(true);
+    
+    // Simulate complex calculation
+    setTimeout(() => {
+      const numStr = number.toString();
+      const numDigits = numStr.length;
+      let sum = 0;
+      const breakdown = [];
 
-    const res = checkArmstrong(val);
-    const nStr = String(val);
-    const breakdown = nStr.split('').map(d => `${d}^${nStr.length}`).join(' + ') + 
-                      ' = ' + 
-                      nStr.split('').map(d => Math.pow(parseInt(d), nStr.length)).join(' + ') + 
-                      ' = ' + 
-                      res.sum;
+      for (let i = 0; i < numDigits; i++) {
+        const digit = parseInt(numStr[i]);
+        const power = Math.pow(digit, numDigits);
+        sum += power;
+        breakdown.push({ digit, power, original: `${digit}^${numDigits}` });
+      }
 
-    setResult({
-      checked: true,
-      num: val,
-      isArmstrong: res.isArmstrong,
-      digits: res.digits,
-      breakdown: breakdown
-    });
-
-    // Save to history (simulated)
-    const user = JSON.parse(localStorage.getItem('user')) || { username: 'alexander' };
-    const attempts = JSON.parse(localStorage.getItem(`attempts_${user.username}`) || '[]');
-    attempts.unshift({
-      id: Date.now(),
-      type: 'CHECK',
-      value: val,
-      result: res.isArmstrong ? 'Armstrong' : 'Not Armstrong',
-      timestamp: new Date().toLocaleString(),
-      status: res.isArmstrong ? 'positive' : 'negative'
-    });
-    localStorage.setItem(`attempts_${user.username}`, JSON.stringify(attempts.slice(0, 50)));
+      const isArmstrong = sum === parseInt(number);
+      setResult({
+        isArmstrong,
+        sum,
+        breakdown,
+        numDigits,
+        originalNumber: number
+      });
+      setIsCalculating(false);
+      
+      // Save to local storage history
+      const history = JSON.parse(localStorage.getItem('attempts') || '[]');
+      history.unshift({
+        num: number,
+        result: isArmstrong ? 'Armstrong' : 'Negative',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: isArmstrong ? 'positive' : 'negative'
+      });
+      localStorage.setItem('attempts', JSON.stringify(history.slice(0, 20)));
+    }, 600);
   };
 
-  const handleClear = () => {
+  const handleReset = () => {
     setNumber('');
-    setResult({ checked: false });
+    setResult(null);
   };
 
   return (
-    <DashboardLayout title="Calculator">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold text-blue-950 mb-4">Numerical Verification Tool</h2>
-          <p className="text-gray-500 max-w-3xl leading-relaxed text-sm">
-            An Armstrong number (or narcissistic number) is a number that is the sum of its own digits each raised to the power of the number of digits. Enter a positive integer below to verify its mathematical property.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Verification Input Card */}
-          <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm p-10">
-            <div className="flex items-center space-x-3 mb-8 text-gray-400">
-              <div className="w-6 h-6 border-2 border-current rounded flex items-center justify-center">
-                <div className="w-1.5 h-1.5 bg-current rounded-sm"></div>
+    <DashboardLayout title="Armstrong Calculator">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Calculator Tool */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="card-premium p-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 bg-[var(--primary-light)] rounded-lg flex items-center justify-center text-[var(--primary)]">
+                <CalcIcon className="w-5 h-5" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Verification Input</span>
+              <div>
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Numerical Verification Tool</h2>
+                <p className="text-xs text-[var(--text-muted)]">Input a number to verify its narcissistic properties</p>
+              </div>
             </div>
 
-            <form onSubmit={handleCheck} className="space-y-8">
+            <form onSubmit={checkArmstrong} className="space-y-6">
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Enter your number</label>
-                <input
-                  type="text"
-                  className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-6 text-3xl font-bold text-blue-950 focus:ring-1 focus:ring-blue-900 outline-none transition-all"
-                  value={number}
-                  onChange={(e) => setNumber(e.target.value.replace(/\D/g, ''))}
-                />
-                <p className="mt-4 flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                  <HelpCircle className="w-3 h-3 mr-1.5" /> Supports positive integers up to 10 digits
-                </p>
-              </div>
-
-              <div className="flex space-x-4 pt-4">
-                <button
-                  type="submit"
-                  className="bg-blue-950 text-white px-10 py-4 rounded font-bold text-xs uppercase tracking-widest hover:bg-blue-900 transition-colors shadow-md"
-                >
-                  Check Number
-                </button>
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="text-gray-400 font-bold text-xs uppercase tracking-widest px-10 py-4 hover:text-gray-600 transition-colors"
-                >
-                  Clear
-                </button>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Input Number</label>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="relative flex-1">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--text-muted)]">
+                      <Hash className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="number"
+                      required
+                      placeholder="e.g. 153, 370, 407"
+                      className="input-premium pl-11 text-lg font-semibold py-4"
+                      value={number}
+                      onChange={(e) => setNumber(e.target.value)}
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={isCalculating}
+                    className="btn-primary px-8 py-4 flex items-center justify-center space-x-2 sm:w-auto w-full"
+                  >
+                    {isCalculating ? (
+                      <span className="flex items-center space-x-2">
+                        <RotateCcw className="w-4 h-4 animate-spin" />
+                        <span>Analyzing...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        <span>Check Number</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
 
-          {/* Mystery Card */}
-          <div className="bg-blue-950 rounded-xl overflow-hidden relative group">
-            <img 
-              src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=800" 
-              alt="Numbers" 
-              className="w-full h-full object-cover opacity-40 group-hover:scale-105 transition-transform duration-700"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-blue-950 to-transparent flex flex-col justify-end p-8">
-              <h3 className="text-2xl font-bold text-white mb-3">The 153 Mystery</h3>
-              <p className="text-blue-100/70 text-sm leading-relaxed">
-                Did you know that 153 is the smallest three-digit Armstrong number? It was historically significant in various mathematical and religious texts.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Verification Result Section */}
-        {result.checked && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10 space-y-12 mb-8">
-            <div className="flex items-center space-x-6">
-              <div className={`w-14 h-14 rounded-lg flex items-center justify-center shadow-lg ${
-                result.isArmstrong ? 'bg-blue-900 text-white' : 'bg-red-900 text-white'
-              }`}>
-                <Check className="w-8 h-8" />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Verification Result</p>
-                <h3 className="text-4xl font-bold text-blue-950">
-                  {result.num} <span className="font-normal italic text-gray-400">is {result.isArmstrong ? 'an' : 'not an'}</span> Armstrong Number
-                </h3>
-              </div>
-            </div>
-
-            {/* Mathematical Breakdown */}
-            <div className="space-y-6">
-              <div className="flex items-center space-x-3 text-gray-800">
-                <span className="text-lg font-bold">ƒx</span>
-                <span className="text-[10px] font-bold uppercase tracking-widest">Mathematical Breakdown</span>
-              </div>
-              <div className="bg-blue-50/50 rounded-xl p-16 text-center border border-blue-50 relative overflow-hidden">
-                <div className="relative z-10 space-y-8">
-                  <p className="text-3xl font-bold text-blue-950 font-serif tracking-tight">
-                    {String(result.num).split('').map((d, i, a) => (
-                      <span key={i}>
-                        {d}<sup className="text-xl ml-0.5">{a.length}</sup>
-                        {i < a.length - 1 ? <span className="mx-4 text-blue-300">+</span> : <span className="mx-4 text-blue-300">=</span>}
-                      </span>
-                    ))}
-                    {result.num}
-                  </p>
-                  
-                  <div className="w-1/2 h-[1px] bg-gray-200 mx-auto"></div>
-                  
-                  <div className="space-y-4 text-gray-500 font-medium">
-                    <p className="text-sm">
-                      ({String(result.num).split('').map((d, i, a) => (
-                        <span key={i}>
-                          {Array(a.length).fill(d).join(' × ')}
-                          {i < a.length - 1 ? <span className="mx-3 text-gray-300">) + (</span> : ')'}
-                        </span>
-                      ))})
-                    </p>
-                    <p className="text-sm">
-                      {String(result.num).split('').map((d, i, a) => (
-                        <span key={i}>
-                          {Math.pow(parseInt(d), a.length)}
-                          {i < a.length - 1 ? <span className="mx-3 text-gray-300">+</span> : <span className="mx-3 text-gray-300">=</span>}
-                        </span>
-                      ))}
-                      {result.num}
-                    </p>
+          {/* Result Display */}
+          {result && (
+            <div className={`card-premium overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+              <div className={`p-8 ${result.isArmstrong ? 'bg-[var(--success)]/5' : 'bg-[var(--danger)]/5'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                  <div className="flex items-center space-x-4">
+                    <div className={`w-14 h-14 rounded-full flex items-center justify-center ${result.isArmstrong ? 'bg-[var(--success)] text-white' : 'bg-[var(--danger)] text-white'}`}>
+                      {result.isArmstrong ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />}
+                    </div>
+                    <div>
+                      <h3 className={`text-2xl font-bold ${result.isArmstrong ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
+                        {result.isArmstrong ? 'Verification Confirmed' : 'Verification Failed'}
+                      </h3>
+                      <p className="text-sm text-[var(--text-secondary)]">
+                        {result.originalNumber} is {result.isArmstrong ? 'an' : 'not an'} Armstrong Number
+                      </p>
+                    </div>
                   </div>
+                  <button onClick={handleReset} className="btn-outline px-4 py-2 text-xs flex items-center justify-center space-x-2 bg-white">
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Try Another</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-8">
+                <div>
+                  <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-6 border-b border-[var(--border)] pb-2">Mathematical Breakdown</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-gray-50 p-4 rounded-lg border border-[var(--border)]">
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Digits</p>
+                      <p className="text-xl font-bold text-[var(--text-primary)]">{result.numDigits}</p>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-[var(--border)] sm:col-span-3">
+                      <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">The Power Sum Calculation</p>
+                      <p className="text-base font-mono font-bold text-[var(--text-primary)]">
+                        Σ = {result.breakdown.map((b, i) => (
+                          <span key={i}>
+                            {i > 0 && ' + '}
+                            ({b.original})
+                          </span>
+                        ))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center p-6 bg-gray-50 rounded-xl border border-dashed border-[var(--border)]">
+                  <div className="text-center sm:text-right flex-1">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Calculated Sum</p>
+                    <p className="text-3xl font-bold text-[var(--text-primary)]">{result.sum}</p>
+                  </div>
+                  <div className="px-8 py-4 sm:py-0 text-2xl font-bold text-[var(--text-muted)]">
+                    {result.sum === parseInt(result.originalNumber) ? '=' : '≠'}
+                  </div>
+                  <div className="text-center sm:text-left flex-1">
+                    <p className="text-[10px] font-bold text-[var(--text-muted)] uppercase mb-1">Original Number</p>
+                    <p className="text-3xl font-bold text-[var(--text-primary)]">{result.originalNumber}</p>
+                  </div>
+                </div>
+
+                <div className="bg-[var(--primary-light)]/30 p-4 rounded-lg flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-[var(--primary)] shrink-0 mt-0.5" />
+                  <p className="text-xs text-[var(--primary)] leading-relaxed italic">
+                    "Since the calculated sum {result.sum === parseInt(result.originalNumber) ? 'matches' : 'does not match'} the original number, its Armstrong property is {result.isArmstrong ? 'mathematically confirmed' : 'invalidated'}."
+                  </p>
                 </div>
               </div>
             </div>
+          )}
+        </div>
 
-            {/* Detail Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
-              <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-8 shadow-sm">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Sequence Rank</p>
-                <h4 className="text-2xl font-bold text-blue-950 mb-2">4th</h4>
-                <p className="text-xs text-gray-500 leading-relaxed">The 4th number in the sequence of narcissistic numbers.</p>
+        {/* Sidebar Info */}
+        <div className="space-y-6">
+          <div className="card-premium p-6">
+            <h4 className="text-xs font-bold text-[var(--text-primary)] mb-4">Academic Insight</h4>
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-lg border border-[var(--border)]">
+                <p className="text-xs font-semibold text-[var(--text-secondary)] leading-relaxed">
+                  Armstrong numbers are also known as Narcissistic numbers, Pluperfect digital invariants, or Perfect digital invariants.
+                </p>
               </div>
-              <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-8 shadow-sm">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Base-10 Identity</p>
-                <h4 className="text-2xl font-bold text-blue-950 mb-2">Decimal</h4>
-                <p className="text-xs text-gray-500 leading-relaxed">Validation performed in standard base-10 arithmetic.</p>
-              </div>
-              <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-8 shadow-sm">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Power Factor</p>
-                <h4 className="text-2xl font-bold text-blue-950 mb-2">n = {result.digits}</h4>
-                <p className="text-xs text-gray-500 leading-relaxed">Digits raised to the power of the total digit count.</p>
+              <ul className="space-y-3">
+                {[
+                  'Numbers are calculated based on the total digit count (n).',
+                  'Each digit is raised to the power of n.',
+                  'Sum of these powers must equal the original number.'
+                ].map((text, i) => (
+                  <li key={i} className="flex items-start space-x-2 text-[11px] text-[var(--text-muted)]">
+                    <ChevronRight className="w-3 h-3 text-[var(--primary)] shrink-0 mt-0.5" />
+                    <span>{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="card-premium p-6 relative overflow-hidden">
+            <div className="relative z-10">
+              <h4 className="text-xs font-bold text-[var(--text-primary)] mb-4">Common Examples</h4>
+              <div className="space-y-3">
+                {[
+                  { num: '153', calc: '1³+5³+3³' },
+                  { num: '370', calc: '3³+7³+0³' },
+                  { num: '371', calc: '3³+7³+1³' },
+                  { num: '407', calc: '4³+0³+7³' },
+                  { num: '1634', calc: '1⁴+6⁴+3⁴+4⁴' },
+                ].map((ex, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded transition-colors group cursor-pointer" onClick={() => setNumber(ex.num)}>
+                    <span className="text-sm font-bold text-[var(--text-primary)]">{ex.num}</span>
+                    <span className="text-[10px] font-mono text-[var(--text-muted)] group-hover:text-[var(--primary)]">{ex.calc}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </DashboardLayout>
   );
 };
+
+const Hash = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="9" x2="20" y2="9"></line>
+    <line x1="4" y1="15" x2="20" y2="15"></line>
+    <line x1="10" y1="3" x2="8" y2="21"></line>
+    <line x1="16" y1="3" x2="14" y2="21"></line>
+  </svg>
+);
 
 export default Calculator;

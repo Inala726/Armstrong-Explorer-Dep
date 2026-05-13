@@ -21,7 +21,7 @@ function App() {
     <div className="min-h-screen bg-white">
       <Routes>
         {/* Public Routes with Top Navbar */}
-        <Route path="/" element={<><Navbar /><Home /></>} />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         

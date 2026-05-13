@@ -1,189 +1,195 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, Shield, Lock, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Settings as SettingsIcon, User, Bell, Lock, Globe, Shield, Save, Trash2, MapPin, Plus, X } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('profile');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
   const [formData, setFormData] = useState({
-    name: 'Alexander Mathos',
-    email: 'alexander.m@university.edu',
-    contact: '+1 (555) 012-3456'
+    name: user.name || 'Alexander Mathos',
+    email: user.email || 'alex@university.edu',
+    username: user.username || 'alex_mathos',
+    phone: user.phone || '+1 (555) 000-0000',
+    notifications: true,
   });
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    alert('Changes saved successfully!');
+  const [addresses, setAddresses] = useState([
+    { id: 1, type: 'Home', detail: '123 University Plaza, New York, NY' }
+  ]);
+  const [newAddress, setNewAddress] = useState('');
+  const [showAddressInput, setShowAddressInput] = useState(false);
+
+  const handleSave = () => {
+    const updatedUser = { ...user, ...formData };
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+    alert('Profile updated successfully!');
   };
 
-  const handleDelete = (e) => {
-    e.preventDefault();
-    if (window.confirm('Are you sure you want to delete your account? This action is irreversible.')) {
+  const handleDeleteAccount = () => {
+    if (window.confirm('CRITICAL: Are you sure you want to delete your profile? This action cannot be undone and all your investigation history will be lost.')) {
       localStorage.removeItem('user');
-      navigate('/');
+      localStorage.removeItem('attempts');
+      alert('Your profile has been successfully deleted.');
+      navigate('/register');
     }
   };
 
-  const tabs = [
-    { id: 'profile', label: 'View/Update Profile' },
-    { id: 'password', label: 'Change Password' },
-    { id: 'delete', label: 'Delete Account' },
-  ];
+  const addAddress = () => {
+    if (newAddress.trim()) {
+      setAddresses([...addresses, { id: Date.now(), type: 'Additional', detail: newAddress }]);
+      setNewAddress('');
+      setShowAddressInput(false);
+    }
+  };
+
+  const removeAddress = (id) => {
+    setAddresses(addresses.filter(a => a.id !== id));
+  };
 
   return (
     <DashboardLayout title="Account Settings">
-      <div className="max-w-7xl mx-auto">
-        {/* Tabs */}
-        <div className="flex space-x-12 border-b border-gray-100 mb-10 overflow-x-auto shrink-0">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`pb-4 text-xs font-bold uppercase tracking-widest transition-all relative shrink-0 ${
-                activeTab === tab.id ? 'text-blue-900' : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-900"></div>
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Main Form Area */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10">
-              <div className="mb-10">
-                <h2 className="text-2xl font-bold text-blue-950 mb-2">Personal Information</h2>
-                <p className="text-gray-400 text-xs italic">Update your identity details for academic certification.</p>
-              </div>
-
-              <form onSubmit={handleSave} className="space-y-8">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Full Name</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-4 text-blue-950 outline-none focus:border-blue-900 transition-colors font-medium"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Email Address</label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-4 text-blue-950 outline-none focus:border-blue-900 transition-colors font-medium"
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                    <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                      <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[10px] font-bold text-green-600 italic tracking-tight">Verified academic email address.</p>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Contact Number</label>
+      <div className="max-w-4xl space-y-6">
+        {/* Profile Information */}
+        <div className="card-premium">
+          <div className="p-6 border-b border-[var(--border)]">
+            <h3 className="text-base font-bold text-[var(--text-primary)]">Profile Management</h3>
+            <p className="text-xs text-[var(--text-muted)]">Update your academic identity and contact details</p>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Full Name</label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-muted)]" />
                   <input
                     type="text"
-                    className="w-full bg-gray-50/50 border border-gray-100 rounded-lg p-4 text-blue-950 outline-none focus:border-blue-900 transition-colors font-medium"
-                    value={formData.contact}
-                    onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                    className="input-premium pl-10"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
                   />
                 </div>
-
-                <div className="flex justify-end space-x-4 pt-6">
-                  <button
-                    type="button"
-                    className="px-8 py-3 rounded border border-gray-200 text-blue-900 text-xs font-bold uppercase tracking-widest hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-8 py-3 rounded bg-blue-950 text-white text-xs font-bold uppercase tracking-widest hover:bg-blue-900 transition-colors shadow-md"
-                  >
-                    Save Changes
-                  </button>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Username</label>
+                <div className="relative">
+                  <Globe className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-muted)]" />
+                  <input
+                    type="text"
+                    className="input-premium pl-10 bg-gray-50/50"
+                    value={formData.username}
+                    readOnly
+                  />
                 </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Sidebar Area */}
-          <div className="space-y-8">
-            {/* Profile Security Card */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-10">
-              <h3 className="text-xl font-bold text-blue-900 mb-8">Profile Security</h3>
-              <div className="space-y-8">
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-50 p-2 rounded text-blue-900">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-800 mb-1">Two-Factor Auth</p>
-                    <p className="text-[10px] text-gray-400 leading-tight">Enabled via Authenticator App</p>
-                  </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Email Address</label>
+                <div className="relative">
+                  <Globe className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-muted)]" />
+                  <input
+                    type="email"
+                    className="input-premium pl-10"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
                 </div>
-                <div className="flex items-start space-x-4">
-                  <div className="bg-blue-50 p-2 rounded text-blue-900">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-gray-800 mb-1">Last Login</p>
-                    <p className="text-[10px] text-gray-400 leading-tight">2 hours ago from London, UK</p>
-                  </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Contact Number</label>
+                <div className="relative">
+                  <Globe className="absolute left-3.5 top-3 w-4 h-4 text-[var(--text-muted)]" />
+                  <input
+                    type="tel"
+                    className="input-premium pl-10"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  />
                 </div>
               </div>
             </div>
-
-            {/* ID Integrity Check */}
-            <div className="bg-blue-50/50 border border-blue-50 rounded-xl p-8">
-              <p className="text-[10px] font-bold text-blue-900 uppercase tracking-[0.2em] mb-6">ID Integrity Check</p>
-              <div className="font-mono text-[10px] text-blue-900/60 leading-relaxed space-y-1">
-                <p>user_hash =</p>
-                <p>Σ(char_code^3)</p>
-                <p>alexander_mathos</p>
-                <p>validity: TRUE</p>
-              </div>
+            <div className="flex justify-end pt-4 border-t border-[var(--border)]">
+              <button onClick={handleSave} className="btn-primary py-2.5 flex items-center space-x-2">
+                <Save className="w-4 h-4" />
+                <span>Update Profile</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Delete Account Section */}
-        <div className="bg-white rounded-xl border border-red-100 shadow-sm p-10">
-          <div className="flex items-center space-x-4 mb-6">
-            <AlertTriangle className="w-6 h-6 text-red-500" />
-            <h3 className="text-2xl font-bold text-gray-900">Delete Account</h3>
-          </div>
-          <p className="text-gray-500 text-sm leading-relaxed mb-10 max-w-2xl">
-            Once you delete your account, all your numerical attempt history and premium status will be permanently removed. <span className="text-red-600 font-bold">This action is irreversible.</span>
-          </p>
-
-          <form onSubmit={handleDelete} className="max-w-md space-y-6">
+        {/* Address Management */}
+        <div className="card-premium">
+          <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
             <div>
-              <input
-                type="password"
-                className="w-full bg-gray-50/50 border border-gray-200 rounded-lg p-4 text-sm outline-none focus:border-red-500 transition-colors"
-                placeholder="Confirm password to delete"
-              />
-              <p className="mt-2 text-[10px] font-bold text-red-600 uppercase tracking-tight">Please enter your password to proceed with deletion.</p>
+              <h3 className="text-base font-bold text-[var(--text-primary)]">Manage Addresses</h3>
+              <p className="text-xs text-[var(--text-muted)]">Maintain your primary and secondary locations</p>
             </div>
-            <button
-              type="submit"
-              className="px-8 py-4 rounded bg-red-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-red-700 transition-colors shadow-md"
+            <button 
+              onClick={() => setShowAddressInput(!showAddressInput)}
+              className="btn-secondary py-1.5 px-3 text-xs flex items-center space-x-1"
             >
-              Delete Account
+              <Plus className="w-3 h-3" />
+              <span>Add New</span>
             </button>
-          </form>
+          </div>
+          <div className="p-6 space-y-4">
+            {showAddressInput && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-[var(--border)] animate-in fade-in slide-in-from-top-2">
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-2">New Address Detail</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="text" 
+                    className="input-premium" 
+                    placeholder="Enter full address..."
+                    value={newAddress}
+                    onChange={(e) => setNewAddress(e.target.value)}
+                  />
+                  <button onClick={addAddress} className="btn-primary px-4">Add</button>
+                </div>
+              </div>
+            )}
+            <div className="space-y-3">
+              {addresses.map(addr => (
+                <div key={addr.id} className="flex items-center justify-between p-4 bg-white border border-[var(--border)] rounded-lg group hover:border-[var(--primary)] transition-all">
+                  <div className="flex items-start space-x-3">
+                    <MapPin className="w-4 h-4 text-[var(--primary)] mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-[var(--text-primary)]">{addr.type}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{addr.detail}</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => removeAddress(addr.id)}
+                    className="p-1.5 text-gray-400 hover:text-[var(--danger)] opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="card-premium border-red-100 bg-red-50/10">
+          <div className="p-6 border-b border-red-100">
+            <h3 className="text-base font-bold text-red-700">Danger Zone</h3>
+            <p className="text-xs text-red-500">Critical account actions that cannot be reversed</p>
+          </div>
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-primary)]">Delete Student Profile</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Once you delete your profile, there is no going back. Please be certain.</p>
+              </div>
+              <button 
+                onClick={handleDeleteAccount}
+                className="btn-outline border-red-200 text-red-600 hover:bg-red-50 flex items-center justify-center space-x-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete Account</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </DashboardLayout>

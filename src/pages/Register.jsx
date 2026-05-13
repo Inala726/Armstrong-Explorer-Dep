@@ -1,187 +1,200 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { HelpCircle, AlertCircle } from 'lucide-react';
+import { User, Mail, Lock, Phone, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    contact: '',
-    username: '',
+    fullName: '',
+    contactNumber: '',
     email: '',
+    username: '',
     password: '',
     confirmPassword: ''
   });
-  const [errors, setErrors] = useState({});
-
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Full name is required';
-    if (!formData.contact.trim()) newErrors.contact = 'Contact number is required';
-    if (!formData.username.trim()) newErrors.username = 'Username is required';
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email address is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    return newErrors;
-  };
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    setIsLoading(true);
     
-    // Simulate successful registration
-    alert('Registration successful! Please login.');
-    navigate('/login');
+    // Simulate registration
+    setTimeout(() => {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const newUser = { 
+        username: formData.username, 
+        name: formData.fullName,
+        email: formData.email,
+        phone: formData.contactNumber
+      };
+      users.push(newUser);
+      localStorage.setItem('users', JSON.stringify(users));
+      localStorage.setItem('user', JSON.stringify(newUser));
+      navigate('/dashboard');
+    }, 1000);
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center pt-12 pb-20 px-4">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-blue-950 mb-2">Armstrong Explorer</h1>
-        <p className="text-gray-600 text-sm">Join the pursuit of numerical excellence.</p>
+    <div className="min-h-screen bg-[var(--bg-main)] flex flex-col items-center justify-center p-4 py-12 lg:py-20">
+      {/* Background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] bg-[var(--primary)] opacity-[0.02] rounded-full blur-[80px]"></div>
       </div>
 
-      <div className="w-full max-w-xl bg-white rounded-xl shadow-sm border border-gray-100 p-10">
-        <h2 className="text-2xl font-bold text-blue-950 mb-1">Create Account</h2>
-        <p className="text-gray-500 text-sm italic mb-8">A journey into mathematical patterns begins here.</p>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Full Name</label>
-              <input
-                type="text"
-                placeholder="Enter your name"
-                className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.name ? 'border-red-600' : 'border-gray-200'}`}
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-              />
-              {errors.name && <p className="mt-1 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.name}</p>}
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Contact Number</label>
-              <input
-                type="text"
-                placeholder="+1 (555) 000-0000"
-                className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.contact ? 'border-red-600' : 'border-gray-200'}`}
-                value={formData.contact}
-                onChange={(e) => setFormData({...formData, contact: e.target.value})}
-              />
-              {errors.contact && <p className="mt-1 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.contact}</p>}
-            </div>
+      <div className="w-full max-w-[520px] relative z-10">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-[var(--primary)] rounded-xl shadow-lg mb-4">
+            <span className="text-white font-bold text-2xl">A</span>
           </div>
+          <h1 className="text-2xl font-bold text-[var(--text-primary)]">Create Account</h1>
+          <p className="text-[var(--text-secondary)] text-sm mt-2">Join our academic community of numerical explorers</p>
+        </div>
 
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Username</label>
-            <input
-              type="text"
-              placeholder="math_enthusiast"
-              className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.username ? 'border-red-600' : 'border-gray-200'}`}
-              value={formData.username}
-              onChange={(e) => setFormData({...formData, username: e.target.value})}
-            />
-            {errors.username && <p className="mt-1 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.username}</p>}
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Email Address</label>
-            <div className="relative">
-              <input
-                type="email"
-                className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.email ? 'border-red-600' : 'border-gray-200'}`}
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
-              {errors.email && <AlertCircle className="absolute right-3 top-2.5 w-4 h-4 text-red-600" />}
+        <div className="bg-white rounded-xl border border-[var(--border)] shadow-xl p-8 lg:p-10">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Full Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <User className="h-4 w-4 text-[var(--text-muted)]" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Alex Mathos"
+                    className="input-premium pl-10"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Contact Number</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Phone className="h-4 w-4 text-[var(--text-muted)]" />
+                  </div>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+1 (555) 000-0000"
+                    className="input-premium pl-10"
+                    value={formData.contactNumber}
+                    onChange={(e) => setFormData({...formData, contactNumber: e.target.value})}
+                  />
+                </div>
+              </div>
             </div>
-            {errors.email && <p className="mt-1.5 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.email}</p>}
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Password</label>
-              <input
-                type="password"
-                className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.password ? 'border-red-600' : 'border-gray-200'}`}
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-              {errors.password && <p className="mt-1 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.password}</p>}
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-widest">Confirm Password</label>
+              <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Email Address</label>
               <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <Mail className="h-4 w-4 text-[var(--text-muted)]" />
+                </div>
                 <input
-                  type="password"
-                  className={`w-full px-4 py-2.5 bg-gray-50/50 border rounded focus:ring-1 focus:ring-blue-900 outline-none text-[13px] text-black ${errors.confirmPassword ? 'border-red-600' : 'border-gray-200'}`}
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  type="email"
+                  required
+                  placeholder="alex@university.edu"
+                  className="input-premium pl-10"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
-                {errors.confirmPassword && <AlertCircle className="absolute right-3 top-2.5 w-4 h-4 text-red-600" />}
               </div>
-              {errors.confirmPassword && <p className="mt-1 text-[9px] font-bold text-red-600 uppercase tracking-tight">{errors.confirmPassword}</p>}
             </div>
-          </div>
 
-          {/* Info Box */}
-          <div className="bg-blue-50 border border-blue-100 rounded p-6 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="bg-white p-2 rounded-full border border-blue-200">
-                <HelpCircle className="w-5 h-5 text-blue-900" />
+            <div>
+              <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                  <User className="h-4 w-4 text-[var(--text-muted)]" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="alex_mathos"
+                  className="input-premium pl-10"
+                  value={formData.username}
+                  onChange={(e) => setFormData({...formData, username: e.target.value})}
+                />
               </div>
-              <p className="text-xs font-bold text-blue-900 max-w-[150px]">Is 153 an Armstrong number?</p>
             </div>
-            <p className="text-xs font-bold text-blue-900">1³ + 5³ + 3³ = 153</p>
-          </div>
 
-          <button
-            type="submit"
-            className="w-full bg-blue-900 text-white py-4 rounded font-bold text-xs uppercase tracking-widest hover:bg-blue-800 transition-colors"
-          >
-            Register
-          </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Lock className="h-4 w-4 text-[var(--text-muted)]" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    className="input-premium pl-10"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Confirm Password</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <Lock className="h-4 w-4 text-[var(--text-muted)]" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    className="input-premium pl-10"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  />
+                </div>
+              </div>
+            </div>
 
-          <div className="pt-4 text-center border-t border-gray-100">
-            <p className="text-sm text-gray-600">
-              Already have an account? <Link to="/login" className="font-bold text-blue-950 hover:underline">Login</Link>
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  required
+                  className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded cursor-pointer"
+                />
+              </div>
+              <label htmlFor="terms" className="ml-2 block text-xs text-[var(--text-secondary)] leading-relaxed">
+                I agree to the <Link to="/terms" className="text-[var(--primary)] font-semibold hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-[var(--primary)] font-semibold hover:underline">Privacy Policy</Link>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full btn-primary py-3 flex items-center justify-center space-x-2"
+            >
+              <span>{isLoading ? 'Creating Account...' : 'Create Account'}</span>
+              {!isLoading && <ArrowRight className="w-4 h-4" />}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-[var(--border)] text-center">
+            <p className="text-sm text-[var(--text-secondary)]">
+              Already have an account? <Link to="/login" className="font-bold text-[var(--primary)] hover:underline">Sign In</Link>
             </p>
           </div>
-        </form>
-      </div>
+        </div>
 
-      <div className="mt-12 flex space-x-8 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-        <Link to="/privacy" className="hover:text-blue-900 transition-colors">Privacy Policy</Link>
-        <Link to="/terms" className="hover:text-blue-900 transition-colors">Terms of Service</Link>
-        <Link to="/support" className="hover:text-blue-900 transition-colors">Academic Support</Link>
-      </div>
-
-      <div className="mt-20 w-full border-t border-gray-200 pt-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div>
-            <h4 className="text-blue-950 font-bold text-lg mb-2">Armstrong Explorer</h4>
-            <p className="text-gray-500 text-xs leading-relaxed max-w-xs">
-              © 2024 Armstrong Explorer. Academic excellence through numerical patterns.
-            </p>
+        <div className="mt-8 flex items-center justify-center space-x-6">
+          <div className="flex items-center space-x-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--success)]" />
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Academic Access</span>
           </div>
-          <div className="flex space-x-8 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-            <Link to="/privacy">Privacy Policy</Link>
-            <Link to="/terms">Terms of Service</Link>
-            <Link to="/api">API Documentation</Link>
-            <Link to="/support">Support</Link>
+          <div className="flex items-center space-x-1.5">
+            <CheckCircle2 className="w-3.5 h-3.5 text-[var(--success)]" />
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">Secure Data</span>
           </div>
         </div>
       </div>
