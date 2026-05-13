@@ -8,35 +8,129 @@ const Home = () => {
       <Navbar />
       
       {/* Hero Section */}
-      <div className="relative overflow-hidden pt-32 pb-20 lg:pt-48 lg:pb-32">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150%] h-[500px] bg-gradient-to-b from-[var(--primary)]/5 to-transparent rounded-[100%] blur-3xl pointer-events-none"></div>
+      <div className="relative overflow-hidden bg-white pt-24 pb-16 lg:pt-32 lg:pb-24">
+        {/* Abstract background shapes */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+          <div className="absolute -top-[20%] -right-[10%] w-[50%] h-[50%] rounded-full bg-[var(--primary)]/5 blur-3xl"></div>
+          <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-100/40 blur-3xl"></div>
+        </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center space-x-2 bg-[var(--primary-light)] px-4 py-2 rounded-full text-[var(--primary)] text-xs font-bold uppercase tracking-widest mb-8 border border-[var(--primary)]/10 animate-in fade-in slide-in-from-top-4 duration-700">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
-              </span>
-              <span>Lehman Educational Services Presents</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+            {/* Left Content */}
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full text-[var(--primary)] text-xs font-bold uppercase tracking-widest mb-6 border border-blue-100">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--primary)]"></span>
+                </span>
+                <span>Lehman Educational Services</span>
+              </div>
+              
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0B1B3D] tracking-tight mb-6 leading-[1.15]">
+                Master the Art of <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--primary)] to-blue-400">
+                  Numerical Patterns
+                </span>
+              </h1>
+              
+              <p className="text-lg text-gray-600 leading-relaxed mb-8 max-w-xl">
+                Elevate your mathematical skills with a comprehensive step-by-step learning environment that simulates real-world implementation of complex numerical concepts.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <Link to="/register" className="w-full sm:w-auto bg-[var(--primary)] text-white hover:bg-blue-700 px-8 py-4 rounded-lg font-bold text-base transition-all shadow-lg shadow-[var(--primary)]/30 flex items-center justify-center space-x-2">
+                  <span>Start Learning Now</span>
+                  <ArrowRight className="w-5 h-5" />
+                </Link>
+                <Link to="/login" className="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 px-8 py-4 rounded-lg font-bold text-base transition-all flex items-center justify-center">
+                  Member Login
+                </Link>
+              </div>
+
+              <div className="mt-10 flex items-center space-x-4 text-sm font-medium text-gray-500">
+                <div className="flex -space-x-2">
+                  {[1,2,3,4].map(i => (
+                    <img key={i} src={`https://i.pravatar.cc/100?img=${i+10}`} alt="Student" className="w-8 h-8 rounded-full border-2 border-white" />
+                  ))}
+                </div>
+                <p>Join <span className="font-bold text-[#0B1B3D]">10,000+</span> IT students</p>
+              </div>
             </div>
-            
-            <h1 className="text-5xl lg:text-7xl font-extrabold text-[var(--text-primary)] tracking-tight mb-8 leading-[1.1] animate-in fade-in slide-in-from-top-6 duration-1000">
-              Master the Art of <span className="text-[var(--primary)]">Numerical Patterns</span>
-            </h1>
-            
-            <p className="text-xl text-[var(--text-secondary)] leading-relaxed mb-10 max-w-2xl mx-auto opacity-0 animate-in fade-in fill-mode-forwards duration-1000 delay-300">
-              A comprehensive step-by-step learning environment that simulates real-world implementation of mathematical concepts.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 animate-in fade-in fill-mode-forwards duration-1000 delay-500">
-              <Link to="/register" className="btn-primary px-10 py-4 text-base flex items-center space-x-3 w-full sm:w-auto justify-center">
-                <span>Start Learning</span>
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link to="/login" className="btn-outline px-10 py-4 text-base bg-white w-full sm:w-auto justify-center">
-                Member Login
-              </Link>
+
+            {/* Right Content / Dashboard Preview */}
+            <div className="relative lg:ml-auto w-full max-w-lg lg:max-w-none mx-auto lg:mx-0">
+              {/* Main Card */}
+              <div className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 z-20">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-[var(--primary)]">
+                      <Calculator className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-[#0B1B3D]">Algorithm Verification</p>
+                      <p className="text-xs text-gray-500">Live Juncture Environment</p>
+                    </div>
+                  </div>
+                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Active</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Input Sequence</p>
+                    <p className="text-xl font-bold text-[#0B1B3D] font-mono">153</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1 mb-2">Processing Steps</p>
+                    <div className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 rounded bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">1</div>
+                      <p className="text-gray-600 font-mono text-xs">1³ = 1</p>
+                    </div>
+                    <div className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 rounded bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">2</div>
+                      <p className="text-gray-600 font-mono text-xs">5³ = 125</p>
+                    </div>
+                    <div className="flex items-center space-x-3 text-sm">
+                      <div className="w-6 h-6 rounded bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">3</div>
+                      <p className="text-gray-600 font-mono text-xs">3³ = 27</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-[var(--primary)]/5 p-4 rounded-lg border border-[var(--primary)]/10 flex items-center justify-between mt-4">
+                    <p className="text-xs font-bold text-[var(--primary)]">Σ = 1 + 125 + 27 = 153</p>
+                    <div className="flex items-center space-x-1 text-green-600 text-xs font-bold">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="hidden sm:inline">Verified Match</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Decorative floating cards */}
+              <div className="absolute -right-4 lg:-right-8 top-12 bg-white p-4 rounded-xl shadow-xl border border-gray-100 z-10 hidden sm:block animate-bounce" style={{ animationDuration: '3s' }}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                    <History className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#0B1B3D]">Laddered Approach</p>
+                    <p className="text-[10px] text-gray-500">Step-by-step mastery</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -left-4 lg:-left-10 -bottom-6 bg-white p-4 rounded-xl shadow-xl border border-gray-100 z-30 hidden sm:block animate-bounce" style={{ animationDuration: '4s' }}>
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#0B1B3D]">Live eProject</p>
+                    <p className="text-[10px] text-gray-500">Real-life scenario</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
