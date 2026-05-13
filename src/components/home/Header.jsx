@@ -1,0 +1,69 @@
+import './header.css'
+import { Link } from 'react-router-dom';
+import logo from "../../assets/logo-1.svg"
+import { IoIosArrowDown } from "react-icons/io";
+import { CgMail } from "react-icons/cg";
+import { LuPhone } from "react-icons/lu";
+import { MdLocationPin } from "react-icons/md";
+import { MdOutlineApps } from "react-icons/md";
+import { useEffect, useState } from 'react';
+
+
+const Header = () => {
+
+  const [isFixed, setIsFixed] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollHeight = window.scrollY;
+      if (scrollHeight > 200) { // Adjust this value as needed
+        setIsFixed(true);
+      } else {
+        setIsFixed(false);
+      }
+    };
+    
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+    return(
+        <>
+        <div className={`head-all ${isFixed ? "fixed" : ""}`}>
+         <div className='header'>
+          <div className='header-left'>
+          <div className='gmail-h'>
+            <CgMail className='mail-icons'/>
+            <p>info@lehmaned.com</p>
+          </div>
+          <div className='num-h'>
+           <LuPhone className='ph-icons'/>
+            <p>+61 012 012 445</p>
+          </div>
+          </div>
+
+          <div className='add-h'>
+           <MdLocationPin className='loc-icons'/>
+            <p> 684 West College St. Sun City, USA</p>
+          </div>
+         </div>
+
+         <nav className='nav'>
+          <div className='nav-left'>
+          <h2 className='logo-text' style={{color: 'var(--primary)', fontWeight: 'bold', fontSize: '24px'}}>Lehman Ed.</h2>
+          </div>
+
+          <div className='nav-right'>
+            <Link to="/register"><button className='log-btn'>Register</button></Link>
+            <Link to="/login"><button className='dashboard-btn'>Login</button></Link>
+          </div>
+         </nav>
+         </div>
+        </>
+    )
+}
+
+export default Header;
