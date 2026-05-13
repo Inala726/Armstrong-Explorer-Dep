@@ -122,8 +122,8 @@ const Calculator = () => {
                       <h3 className={`text-2xl font-bold ${result.isArmstrong ? 'text-[var(--success)]' : 'text-[var(--danger)]'}`}>
                         {result.isArmstrong ? 'Verification Confirmed' : 'Verification Failed'}
                       </h3>
-                      <p className="text-sm text-[var(--text-secondary)]">
-                        {result.originalNumber} is {result.isArmstrong ? 'an' : 'not an'} Armstrong Number
+                      <p className="text-sm font-bold text-[var(--text-secondary)] mt-1">
+                        {result.isArmstrong ? 'It is an Armstrong Number' : 'Not an Armstrong Number'}
                       </p>
                     </div>
                   </div>

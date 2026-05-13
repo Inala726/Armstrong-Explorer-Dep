@@ -16,6 +16,18 @@ const RangeSearch = () => {
       const start = parseInt(range.start);
       const end = parseInt(range.end);
       
+      // SRS Requirement: Validate user input for a reasonable range
+      if (end < start) {
+        alert("End range must be greater than or equal to start range.");
+        setIsSearching(false);
+        return;
+      }
+      if (end - start > 100000) {
+        alert("Range is too large. Please limit your search to a maximum of 100,000 numbers at a time for optimal performance.");
+        setIsSearching(false);
+        return;
+      }
+      
       for (let i = start; i <= end; i++) {
         if (isArmstrong(i)) {
           found.push(i);
