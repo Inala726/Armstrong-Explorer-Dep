@@ -1,6 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Mail, Lock, Phone, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { api, setAuthSession } from '../lib/api';
+
+const splitFullName = (fullName) => {
+  const parts = fullName.trim().split(/\s+/);
+  const first_name = parts.shift() || '';
+  const last_name = parts.join(' ');
+  return { first_name, last_name };
+};
 
 const Register = () => {
   const navigate = useNavigate();
@@ -13,25 +21,50 @@ const Register = () => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate registration
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const newUser = { 
-        username: formData.username, 
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.contactNumber
-      };
-      users.push(newUser);
-      localStorage.setItem('users', JSON.stringify(users));
-      localStorage.setItem('user', JSON.stringify(newUser));
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      setIsLoading(false);
+      return;
+    }
+
+    const { first_name, last_name } = splitFullName(formData.fullName);
+    const registrationPayload = {
+      first_name,
+      last_name,
+      email: formData.email,
+      username: formData.username,
+      password: formData.password,
+      contact_number: formData.contactNumber,
+    };
+
+    try {
+      await api.register(registrationPayload);
+      const loginData = await api.login({
+        username: formData.username,
+        password: formData.password,
+      });
+      setAuthSession({
+        ...loginData,
+        user: {
+          ...loginData.user,
+          first_name,
+          last_name,
+          contact_number: formData.contactNumber,
+        },
+      });
       navigate('/dashboard');
-    }, 1000);
+    } catch (err) {
+      setError(err.message || 'Unable to create your account.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -52,6 +85,11 @@ const Register = () => {
 
         <div className="bg-white rounded-xl border border-[var(--border)] shadow-xl p-8 lg:p-10">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Full Name</label>

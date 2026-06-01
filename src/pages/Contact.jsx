@@ -1,9 +1,30 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, CheckCircle2 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api } from '../lib/api';
 
 const Contact = () => {
   const [sent, setSent] = useState(false);
+  const [contactInfo, setContactInfo] = useState({
+    organization: 'Lehman Educational Services',
+    email: '',
+    phone: '',
+    address: '',
+  });
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const loadContactInfo = async () => {
+      try {
+        const data = await api.getContact();
+        setContactInfo(data);
+      } catch (err) {
+        setError(err.message || 'Unable to load contact information.');
+      }
+    };
+
+    loadContactInfo();
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -64,6 +85,11 @@ const Contact = () => {
         <div className="space-y-6">
           <div className="card-premium p-6">
             <h4 className="text-sm font-bold text-[var(--text-primary)] mb-6">Organization Details</h4>
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
             <div className="space-y-6">
               <div className="flex items-start space-x-4">
                 <div className="p-2 bg-blue-50 rounded-lg text-[var(--primary)]">
@@ -71,7 +97,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">eProject Support</p>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">eprojects@lehman-edu.com</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{contactInfo.email || 'Unavailable'}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
@@ -80,7 +106,7 @@ const Contact = () => {
                 </div>
                 <div>
                   <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Academic Helpline</p>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">+1 (800) LEHMAN-EDU</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{contactInfo.phone || 'Unavailable'}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-4">
@@ -88,8 +114,8 @@ const Contact = () => {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">Headquarters</p>
-                  <p className="text-sm font-medium text-[var(--text-primary)]">Lehman Educational Services<br/>Academic Square, Suite 400<br/>New York, NY 10001</p>
+                  <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest mb-1">{contactInfo.organization || 'Headquarters'}</p>
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{contactInfo.address || 'Unavailable'}</p>
                 </div>
               </div>
             </div>

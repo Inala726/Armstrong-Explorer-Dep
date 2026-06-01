@@ -1,18 +1,40 @@
 import { useState } from 'react';
 import { MessageSquare, Star, Send, ThumbsUp } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api, getDisplayName, getStoredUser } from '../lib/api';
 
 const Feedback = () => {
+  const user = getStoredUser();
   const [rating, setRating] = useState(0);
   const [sent, setSent] = useState(false);
+  const [formData, setFormData] = useState({
+    name: getDisplayName(user),
+    email: user?.email || '',
+    message: '',
+  });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
-    setTimeout(() => {
-      setSent(false);
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      await api.submitFeedback({
+        name: formData.name,
+        email: formData.email,
+        message: `Rating: ${rating || 'Not rated'} / 5\n\n${formData.message}`,
+      });
+      setSent(true);
       setRating(0);
-    }, 3000);
+      setFormData({ ...formData, message: '' });
+      setTimeout(() => setSent(false), 3000);
+    } catch (err) {
+      setError(err.message || 'Unable to submit feedback.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -28,6 +50,11 @@ const Feedback = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
             <div className="text-center">
               <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-4">Rate your experience</p>
               <div className="flex justify-center space-x-3">
@@ -49,11 +76,35 @@ const Feedback = () => {
             </div>
 
             <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Name</label>
+                  <input
+                    type="text"
+                    className="input-premium"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Email</label>
+                  <input
+                    type="email"
+                    className="input-premium"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">What could be better?</label>
                 <textarea 
                   className="input-premium h-40 resize-none p-4" 
                   placeholder="Share your thoughts on features, UI, or mathematical accuracy..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   required
                 ></textarea>
               </div>
@@ -65,9 +116,11 @@ const Feedback = () => {
                 </p>
               </div>
 
-              <button type="submit" className="w-full btn-primary py-4 flex items-center justify-center space-x-2 shadow-lg shadow-[var(--primary)]/20">
+              <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-4 flex items-center justify-center space-x-2 shadow-lg shadow-[var(--primary)]/20 disabled:opacity-60">
                 {sent ? (
                   <span>Thank you for your feedback!</span>
+                ) : isSubmitting ? (
+                  <span>Submitting...</span>
                 ) : (
                   <>
                     <Send className="w-4 h-4" />

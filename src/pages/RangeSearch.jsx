@@ -1,56 +1,43 @@
 import { useState } from 'react';
 import { Layers, Search, RotateCcw, Info, Hash, ChevronRight, X } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api } from '../lib/api';
 
 const RangeSearch = () => {
   const [range, setRange] = useState({ start: '', end: '' });
   const [results, setResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState('');
 
-  const findArmstrongs = (e) => {
+  const findArmstrongs = async (e) => {
     e.preventDefault();
     setIsSearching(true);
+    setError('');
     
-    setTimeout(() => {
-      const found = [];
-      const start = parseInt(range.start);
-      const end = parseInt(range.end);
-      
-      // SRS Requirement: Validate user input for a reasonable range
+    const start = parseInt(range.start);
+    const end = parseInt(range.end);
+
+    try {
       if (end < start) {
-        alert("End range must be greater than or equal to start range.");
-        setIsSearching(false);
-        return;
+        throw new Error('End range must be greater than or equal to start range.');
       }
-      if (end - start > 100000) {
-        alert("Range is too large. Please limit your search to a maximum of 100,000 numbers at a time for optimal performance.");
-        setIsSearching(false);
-        return;
+      if (end - start > 10000000) {
+        throw new Error('Range is too large. Please limit your search to 10,000,000 numbers at a time.');
       }
-      
-      for (let i = start; i <= end; i++) {
-        if (isArmstrong(i)) {
-          found.push(i);
-        }
-      }
-      
+
+      const data = await api.findArmstrongInRange(start, end);
+      const found = data.armstrong_numbers || [];
       setResults({
         found,
-        count: found.length,
-        range: `${start} - ${end}`
+        count: data.count ?? found.length,
+        range: `${data.min ?? start} - ${data.max ?? end}`
       });
+    } catch (err) {
+      setResults(null);
+      setError(err.message || 'Unable to search this range.');
+    } finally {
       setIsSearching(false);
-    }, 1000);
-  };
-
-  const isArmstrong = (num) => {
-    const numStr = num.toString();
-    const n = numStr.length;
-    let sum = 0;
-    for (let i = 0; i < n; i++) {
-      sum += Math.pow(parseInt(numStr[i]), n);
     }
-    return sum === num;
   };
 
   const handleClear = () => {
@@ -74,6 +61,11 @@ const RangeSearch = () => {
             </div>
 
             <form onSubmit={findArmstrongs} className="space-y-6">
+              {error && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                  {error}
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Start Range</label>
@@ -180,7 +172,7 @@ const RangeSearch = () => {
               <h4 className="text-sm font-bold">Search Protocol</h4>
             </div>
             <p className="text-xs text-[var(--primary-light)] leading-relaxed mb-6 opacity-80">
-              For optimal performance, searches are currently limited to a range of 10,000 numbers at a time. Larger ranges are processed sequentially.
+              For optimal performance, searches are currently limited to a range of 10,000,000 numbers at a time.
             </p>
             <div className="space-y-4">
               <div className="bg-white/10 p-3 rounded-lg border border-white/10">

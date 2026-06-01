@@ -15,13 +15,14 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
+import { clearAuthSession, getDisplayName, getStoredUser } from '../lib/api';
 
 const DashboardLayout = ({ children, title }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userName = user.name || 'Alexander Mathos';
+  const user = getStoredUser();
+  const userName = getDisplayName(user);
 
   const menuItems = [
     { icon: Home, label: 'Home', path: '/dashboard' },
@@ -37,7 +38,7 @@ const DashboardLayout = ({ children, title }) => {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    clearAuthSession();
     navigate('/login');
   };
 

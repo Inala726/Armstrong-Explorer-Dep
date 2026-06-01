@@ -1,37 +1,86 @@
 import { useState, useEffect } from 'react';
 import { History, Search, Eye, Trash2, Filter, ChevronDown, Download } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api } from '../lib/api';
+
+const formatDate = (value) => {
+  if (!value) return 'Unknown';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(value));
+};
+
+const normalizeAttempt = (attempt) => {
+  if (attempt.mode === 'range') {
+    const min = attempt.range_min;
+    const max = attempt.range_max;
+    const count = attempt.count_found ?? attempt.armstrong_numbers_found?.length ?? 0;
+
+    return {
+      ...attempt,
+      displayNumber: `${min} - ${max}`,
+      result: `${count} Found`,
+      status: count > 0 ? 'positive' : 'negative',
+      date: formatDate(attempt.attempted_at),
+    };
+  }
+
+  return {
+    ...attempt,
+    displayNumber: attempt.input_number,
+    result: attempt.is_armstrong ? 'Armstrong' : 'Negative',
+    status: attempt.is_armstrong ? 'positive' : 'negative',
+    date: formatDate(attempt.attempted_at),
+  };
+};
 
 const Attempts = () => {
   const [attempts, setAttempts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const history = JSON.parse(localStorage.getItem('attempts') || '[]');
-    // Mock data if history is empty
-    if (history.length === 0) {
-      const mockHistory = [
-        { num: 153, result: 'Armstrong', date: 'Oct 24, 2024', status: 'positive' },
-        { num: 370, result: 'Armstrong', date: 'Oct 22, 2024', status: 'positive' },
-        { num: 94, result: 'Negative', date: 'Oct 21, 2024', status: 'negative' },
-        { num: 407, result: 'Armstrong', date: 'Oct 19, 2024', status: 'positive' },
-        { num: 25, result: 'Negative', date: 'Oct 18, 2024', status: 'negative' },
-      ];
-      setAttempts(mockHistory);
-    } else {
-      setAttempts(history);
-    }
+    const loadAttempts = async () => {
+      try {
+        const data = await api.getAttempts();
+        setAttempts((data.attempts || []).map(normalizeAttempt));
+      } catch (err) {
+        setError(err.message || 'Unable to load investigation records.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAttempts();
   }, []);
 
-  const handleDelete = (index) => {
-    const updated = attempts.filter((_, i) => i !== index);
-    setAttempts(updated);
-    localStorage.setItem('attempts', JSON.stringify(updated));
+  const handleExport = () => {
+    const header = ['Mode', 'Input', 'Result', 'Date'];
+    const rows = filteredAttempts.map((attempt) => [
+      attempt.mode,
+      attempt.displayNumber,
+      attempt.result,
+      attempt.date,
+    ]);
+    const csv = [header, ...rows].map((row) => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'armstrong-attempts.csv';
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const filteredAttempts = attempts.filter(a => 
-    a.num.toString().includes(searchTerm) || 
-    a.result.toLowerCase().includes(searchTerm.toLowerCase())
+    a.displayNumber.toString().includes(searchTerm) ||
+    a.result.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.mode.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -57,7 +106,7 @@ const Attempts = () => {
               <span>Filter</span>
               <ChevronDown className="w-3 h-3" />
             </button>
-            <button className="flex-1 sm:flex-none btn-outline py-2 text-xs flex items-center justify-center space-x-2 bg-white">
+            <button onClick={handleExport} className="flex-1 sm:flex-none btn-outline py-2 text-xs flex items-center justify-center space-x-2 bg-white">
               <Download className="w-3.5 h-3.5" />
               <span>Export</span>
             </button>
@@ -78,12 +127,25 @@ const Attempts = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
-                {filteredAttempts.length > 0 ? (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-20 text-center text-sm font-semibold text-[var(--text-muted)]">
+                      Loading investigation records...
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-8 text-center text-sm font-semibold text-red-600">
+                      {error}
+                    </td>
+                  </tr>
+                ) : filteredAttempts.length > 0 ? (
                   filteredAttempts.map((attempt, i) => (
-                    <tr key={i} className="hover:bg-gray-50 transition-colors group">
+                    <tr key={attempt.id || i} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-4 text-xs font-medium text-[var(--text-muted)]">#{attempts.length - i}</td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-bold text-[var(--text-primary)]">{attempt.num}</span>
+                        <span className="text-sm font-bold text-[var(--text-primary)]">{attempt.displayNumber}</span>
+                        <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider mt-1">{attempt.mode}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -101,8 +163,9 @@ const Attempts = () => {
                             <Eye className="w-4 h-4" />
                           </button>
                           <button 
-                            onClick={() => handleDelete(i)}
-                            className="p-2 text-[var(--text-muted)] hover:text-[var(--danger)] hover:bg-red-50 rounded transition-all"
+                            disabled
+                            title="Attempt deletion is not available in the API."
+                            className="p-2 text-[var(--text-muted)] opacity-40 cursor-not-allowed"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

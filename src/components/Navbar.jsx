@@ -1,11 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { clearAuthSession, isAuthenticated } from '../lib/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
+  const userIsAuthenticated = isAuthenticated();
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    clearAuthSession();
     navigate('/login');
   };
 
@@ -29,7 +30,7 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-6">
-            {user ? (
+            {userIsAuthenticated ? (
               <button
                 onClick={handleLogout}
                 className="text-sm font-bold text-gray-800 hover:text-blue-900"
