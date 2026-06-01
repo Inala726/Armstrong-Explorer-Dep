@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { api, setAuthSession } from '../lib/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -10,18 +11,22 @@ const Login = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
     
-    // Simulate API call
-    setTimeout(() => {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const user = users.find(u => u.username === formData.username) || { username: formData.username, name: formData.username };
-      localStorage.setItem('user', JSON.stringify(user));
+    try {
+      const data = await api.login(formData);
+      setAuthSession(data);
       navigate('/dashboard');
-    }, 800);
+    } catch (err) {
+      setError(err.message || 'Unable to sign in. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,6 +48,11 @@ const Login = () => {
 
         <div className="bg-white rounded-xl border border-[var(--border)] shadow-xl p-8 lg:p-10">
           <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Username</label>
               <div className="relative">

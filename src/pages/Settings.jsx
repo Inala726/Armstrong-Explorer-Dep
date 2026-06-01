@@ -1,50 +1,122 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings as SettingsIcon, User, Bell, Lock, Globe, Shield, Save, Trash2, MapPin, Plus, X } from 'lucide-react';
+import { User, Globe, Save, Trash2, MapPin, Plus } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api, clearAuthSession, getDisplayName, getStoredUser, updateStoredUser } from '../lib/api';
+
+const splitFullName = (fullName) => {
+  const parts = fullName.trim().split(/\s+/);
+  const first_name = parts.shift() || '';
+  const last_name = parts.join(' ');
+  return { first_name, last_name };
+};
 
 const Settings = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const user = getStoredUser();
   const [formData, setFormData] = useState({
-    name: user.name || 'Alexander Mathos',
-    email: user.email || 'alex@university.edu',
-    username: user.username || 'alex_mathos',
-    phone: user.phone || '+1 (555) 000-0000',
+    name: getDisplayName(user),
+    email: user?.email || '',
+    username: user?.username || '',
+    phone: user?.contact_number || '',
     notifications: true,
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [error, setError] = useState('');
 
-  const [addresses, setAddresses] = useState([
-    { id: 1, type: 'Home', detail: '123 University Plaza, New York, NY' }
-  ]);
-  const [newAddress, setNewAddress] = useState('');
+  const [addresses, setAddresses] = useState([]);
+  const [newAddress, setNewAddress] = useState({
+    street: '',
+    city: '',
+    state: '',
+    country: '',
+    zip_code: '',
+  });
   const [showAddressInput, setShowAddressInput] = useState(false);
 
-  const handleSave = () => {
-    const updatedUser = { ...user, ...formData };
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    alert('Profile updated successfully!');
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const profile = await api.getProfile();
+        updateStoredUser(profile);
+        setFormData({
+          name: getDisplayName(profile),
+          email: profile.email || '',
+          username: profile.username || '',
+          phone: profile.contact_number || '',
+          notifications: true,
+        });
+      } catch (err) {
+        setError(err.message || 'Unable to load profile details.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setStatusMessage('');
+    setError('');
+
+    const { first_name, last_name } = splitFullName(formData.name);
+
+    try {
+      await api.updateProfile({
+        first_name,
+        last_name,
+        email: formData.email,
+        contact_number: formData.phone,
+      });
+      const updatedUser = {
+        ...getStoredUser(),
+        first_name,
+        last_name,
+        email: formData.email,
+        contact_number: formData.phone,
+      };
+      updateStoredUser(updatedUser);
+      setStatusMessage('Profile updated.');
+    } catch (err) {
+      setError(err.message || 'Unable to update profile.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     if (window.confirm('CRITICAL: Are you sure you want to delete your profile? This action cannot be undone and all your investigation history will be lost.')) {
-      localStorage.removeItem('user');
-      localStorage.removeItem('attempts');
-      alert('Your profile has been successfully deleted.');
+      try {
+        await api.deleteProfile();
+      } catch (err) {
+        setError(err.message || 'Unable to delete profile.');
+        return;
+      }
+      clearAuthSession();
       navigate('/register');
     }
   };
 
-  const addAddress = () => {
-    if (newAddress.trim()) {
-      setAddresses([...addresses, { id: Date.now(), type: 'Additional', detail: newAddress }]);
-      setNewAddress('');
-      setShowAddressInput(false);
+  const addAddress = async () => {
+    if (Object.values(newAddress).every((value) => value.trim())) {
+      setError('');
+      setStatusMessage('');
+      try {
+        const data = await api.addAddress(newAddress);
+        setAddresses([...addresses, { id: data.id || Date.now(), type: 'Additional', detail: `${newAddress.street}, ${newAddress.city}, ${newAddress.state}, ${newAddress.country} ${newAddress.zip_code}` }]);
+        setNewAddress({ street: '', city: '', state: '', country: '', zip_code: '' });
+        setShowAddressInput(false);
+        setStatusMessage(data.message || 'Address added.');
+      } catch (err) {
+        setError(err.message || 'Unable to add address.');
+      }
+    } else {
+      setError('Please fill every address field.');
     }
-  };
-
-  const removeAddress = (id) => {
-    setAddresses(addresses.filter(a => a.id !== id));
   };
 
   return (
@@ -57,6 +129,21 @@ const Settings = () => {
             <p className="text-xs text-[var(--text-muted)]">Update your academic identity and contact details</p>
           </div>
           <div className="p-6 space-y-6">
+            {isLoading && (
+              <div className="rounded-lg border border-[var(--border)] bg-gray-50 px-4 py-3 text-xs font-semibold text-[var(--text-muted)]">
+                Loading profile details...
+              </div>
+            )}
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
+            {statusMessage && (
+              <div className="rounded-lg border border-green-100 bg-green-50 px-4 py-3 text-xs font-semibold text-[var(--success)]">
+                {statusMessage}
+              </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Full Name</label>
@@ -108,9 +195,9 @@ const Settings = () => {
               </div>
             </div>
             <div className="flex justify-end pt-4 border-t border-[var(--border)]">
-              <button onClick={handleSave} className="btn-primary py-2.5 flex items-center space-x-2">
+              <button onClick={handleSave} disabled={isSaving || isLoading} className="btn-primary py-2.5 flex items-center space-x-2 disabled:opacity-60">
                 <Save className="w-4 h-4" />
-                <span>Update Profile</span>
+                <span>{isSaving ? 'Updating...' : 'Update Profile'}</span>
               </button>
             </div>
           </div>
@@ -134,15 +221,24 @@ const Settings = () => {
           <div className="p-6 space-y-4">
             {showAddressInput && (
               <div className="p-4 bg-gray-50 rounded-lg border border-[var(--border)] animate-in fade-in slide-in-from-top-2">
-                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-2">New Address Detail</label>
-                <div className="flex gap-2">
-                  <input 
-                    type="text" 
-                    className="input-premium" 
-                    placeholder="Enter full address..."
-                    value={newAddress}
-                    onChange={(e) => setNewAddress(e.target.value)}
-                  />
+                <label className="block text-[10px] font-bold text-[var(--text-muted)] uppercase mb-3">New Address Detail</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    ['street', 'Street'],
+                    ['city', 'City'],
+                    ['state', 'State'],
+                    ['country', 'Country'],
+                    ['zip_code', 'Zip Code'],
+                  ].map(([key, label]) => (
+                    <input
+                      key={key}
+                      type="text"
+                      className="input-premium"
+                      placeholder={label}
+                      value={newAddress[key]}
+                      onChange={(e) => setNewAddress({ ...newAddress, [key]: e.target.value })}
+                    />
+                  ))}
                   <button onClick={addAddress} className="btn-primary px-4">Add</button>
                 </div>
               </div>
@@ -157,9 +253,10 @@ const Settings = () => {
                       <p className="text-xs text-[var(--text-muted)] mt-0.5">{addr.detail}</p>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => removeAddress(addr.id)}
-                    className="p-1.5 text-gray-400 hover:text-[var(--danger)] opacity-0 group-hover:opacity-100 transition-opacity"
+                  <button
+                    disabled
+                    title="Address deletion is not available in the API."
+                    className="p-1.5 text-gray-400 opacity-40 cursor-not-allowed"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

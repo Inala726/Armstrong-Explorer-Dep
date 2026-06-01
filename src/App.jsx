@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -10,10 +9,10 @@ import Attempts from './pages/Attempts';
 import Settings from './pages/Settings';
 import Contact from './pages/Contact';
 import Feedback from './pages/Feedback';
+import { isAuthenticated } from './lib/api';
 
 const PrivateRoute = ({ children }) => {
-  const user = localStorage.getItem('user');
-  return user ? children : <Navigate to="/login" />;
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
 };
 
 function App() {

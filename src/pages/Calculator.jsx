@@ -1,52 +1,57 @@
 import { useState } from 'react';
 import { Search, Info, RotateCcw, CheckCircle2, XCircle, ChevronRight, Calculator as CalcIcon } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api } from '../lib/api';
 
 const Calculator = () => {
   const [number, setNumber] = useState('');
   const [result, setResult] = useState(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [error, setError] = useState('');
 
-  const checkArmstrong = (e) => {
+  const buildBreakdown = (value) => {
+    const numStr = value.toString();
+    const numDigits = numStr.length;
+    let sum = 0;
+    const breakdown = [];
+
+    for (let i = 0; i < numDigits; i++) {
+      const digit = parseInt(numStr[i]);
+      const power = Math.pow(digit, numDigits);
+      sum += power;
+      breakdown.push({ digit, power, original: `${digit}^${numDigits}` });
+    }
+
+    return { sum, breakdown, numDigits };
+  };
+
+  const checkArmstrong = async (e) => {
     e.preventDefault();
     if (!number) return;
     
     setIsCalculating(true);
+    setError('');
     
-    // Simulate complex calculation
-    setTimeout(() => {
-      const numStr = number.toString();
-      const numDigits = numStr.length;
-      let sum = 0;
-      const breakdown = [];
+    try {
+      const numericValue = parseInt(number);
+      const apiResult = await api.checkArmstrong(numericValue);
+      const { sum, breakdown, numDigits } = buildBreakdown(apiResult.number ?? numericValue);
+      const isArmstrong = Boolean(apiResult.is_armstrong);
 
-      for (let i = 0; i < numDigits; i++) {
-        const digit = parseInt(numStr[i]);
-        const power = Math.pow(digit, numDigits);
-        sum += power;
-        breakdown.push({ digit, power, original: `${digit}^${numDigits}` });
-      }
-
-      const isArmstrong = sum === parseInt(number);
       setResult({
         isArmstrong,
         sum,
         breakdown,
         numDigits,
-        originalNumber: number
+        originalNumber: apiResult.number ?? numericValue,
+        message: apiResult.message
       });
+    } catch (err) {
+      setResult(null);
+      setError(err.message || 'Unable to check this number.');
+    } finally {
       setIsCalculating(false);
-      
-      // Save to local storage history
-      const history = JSON.parse(localStorage.getItem('attempts') || '[]');
-      history.unshift({
-        num: number,
-        result: isArmstrong ? 'Armstrong' : 'Negative',
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: isArmstrong ? 'positive' : 'negative'
-      });
-      localStorage.setItem('attempts', JSON.stringify(history.slice(0, 20)));
-    }, 600);
+    }
   };
 
   const handleReset = () => {
@@ -71,6 +76,11 @@ const Calculator = () => {
             </div>
 
             <form onSubmit={checkArmstrong} className="space-y-6">
+              {error && (
+                <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                  {error}
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Input Number</label>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -123,7 +133,7 @@ const Calculator = () => {
                         {result.isArmstrong ? 'Verification Confirmed' : 'Verification Failed'}
                       </h3>
                       <p className="text-sm font-bold text-[var(--text-secondary)] mt-1">
-                        {result.isArmstrong ? 'It is an Armstrong Number' : 'Not an Armstrong Number'}
+                        {result.message || (result.isArmstrong ? 'It is an Armstrong Number' : 'Not an Armstrong Number')}
                       </p>
                     </div>
                   </div>

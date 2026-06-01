@@ -1,22 +1,77 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Eye, Trophy, Lock, TrendingUp, Hash, CheckCircle2 } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
+import { api, getDisplayName, getStoredUser, updateStoredUser } from '../lib/api';
+
+const formatDate = (value) => {
+  if (!value) return 'Unknown';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(value));
+};
+
+const normalizeAttempt = (attempt) => {
+  if (attempt.mode === 'range') {
+    const count = attempt.count_found ?? attempt.armstrong_numbers_found?.length ?? 0;
+    return {
+      num: `${attempt.range_min} - ${attempt.range_max}`,
+      result: `${count} Found`,
+      date: formatDate(attempt.attempted_at),
+      status: count > 0 ? 'positive' : 'negative',
+    };
+  }
+
+  return {
+    num: attempt.input_number,
+    result: attempt.is_armstrong ? 'Armstrong' : 'Negative',
+    date: formatDate(attempt.attempted_at),
+    status: attempt.is_armstrong ? 'positive' : 'negative',
+  };
+};
 
 const Dashboard = () => {
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userName = user.name || 'Alexander Mathos';
+  const [user, setUser] = useState(getStoredUser());
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [totalAttempts, setTotalAttempts] = useState(0);
+  const [positiveAttempts, setPositiveAttempts] = useState(0);
+  const [error, setError] = useState('');
+  const userName = getDisplayName(user);
   const firstName = userName.split(' ')[0];
 
-  const recentActivity = [
-    { num: 153, result: 'Armstrong', date: 'Oct 24, 2024', status: 'positive' },
-    { num: 370, result: 'Armstrong', date: 'Oct 22, 2024', status: 'positive' },
-    { num: 94, result: 'Negative', date: 'Oct 21, 2024', status: 'negative' },
-  ];
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const [profile, attemptsData] = await Promise.all([
+          api.getProfile(),
+          api.getAttempts(),
+        ]);
+        updateStoredUser(profile);
+        setUser(profile);
+        const attempts = attemptsData.attempts || [];
+        setTotalAttempts(attemptsData.total_attempts ?? attempts.length);
+        setPositiveAttempts(attempts.filter((attempt) => (
+          attempt.mode === 'range'
+            ? (attempt.count_found ?? attempt.armstrong_numbers_found?.length ?? 0) > 0
+            : attempt.is_armstrong
+        )).length);
+        setRecentActivity(attempts.slice(0, 3).map(normalizeAttempt));
+      } catch (err) {
+        setError(err.message || 'Unable to load dashboard data.');
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  const successRate = totalAttempts > 0 ? Math.round((positiveAttempts / totalAttempts) * 100) : 0;
 
   const stats = [
-    { label: 'Total Attempts', value: '14', trend: '+3 this week', icon: Hash },
-    { label: 'Success Rate', value: '85%', trend: 'Above average', icon: TrendingUp },
-    { label: 'Numbers Found', value: '12', trend: 'Level 2 Explorer', icon: Trophy },
+    { label: 'Total Attempts', value: totalAttempts.toString(), trend: 'Saved in database', icon: Hash },
+    { label: 'Success Rate', value: `${successRate}%`, trend: 'Based on recent activity', icon: TrendingUp },
+    { label: 'Numbers Found', value: positiveAttempts.toString(), trend: 'Recent verified wins', icon: Trophy },
   ];
 
   return (
@@ -27,7 +82,7 @@ const Dashboard = () => {
           <div className="relative z-10 max-w-2xl">
             <h2 className="text-3xl font-bold mb-3">Welcome back, {firstName}! 👋</h2>
             <p className="text-[var(--primary-light)] text-sm leading-relaxed mb-8 opacity-90">
-              Ready to explore new numerical patterns? Your progress in narcissistic number theories is currently 15% higher than last month. Keep up the academic excellence!
+              Ready to explore new numerical patterns? Check a single value, run a range search, and your attempts will be saved automatically.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link to="/calculator" className="bg-white text-[var(--primary)] px-6 py-2.5 rounded font-bold text-sm hover:bg-gray-50 transition-all shadow-sm">
@@ -47,6 +102,11 @@ const Dashboard = () => {
           {/* Left Column: Stats & Activity */}
           <div className="lg:col-span-2 space-y-6">
             {/* Stats Grid */}
+            {error && (
+              <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-xs font-semibold text-red-600">
+                {error}
+              </div>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {stats.map((stat, i) => (
                 <div key={i} className="card-premium p-6">
@@ -87,7 +147,7 @@ const Dashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[var(--border)]">
-                    {recentActivity.map((activity, i) => (
+                    {recentActivity.length > 0 ? recentActivity.map((activity, i) => (
                       <tr key={i} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
                           <span className="font-bold text-[var(--text-primary)]">{activity.num}</span>
@@ -108,7 +168,13 @@ const Dashboard = () => {
                           </button>
                         </td>
                       </tr>
-                    ))}
+                    )) : (
+                      <tr>
+                        <td colSpan="4" className="px-6 py-10 text-center text-xs text-[var(--text-muted)]">
+                          No recent activity yet.
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
