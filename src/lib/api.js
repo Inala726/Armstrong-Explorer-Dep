@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://amelie-aerogenic-contractibly.ngrok-free.dev/api' || 'https://web-production-79e1e.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://web-production-79e1e.up.railway.app';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
